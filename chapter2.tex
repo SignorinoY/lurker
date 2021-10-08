@@ -1,0 +1,304 @@
+\documentclass[cn]{elegantpaper}
+\usepackage[linesnumbered,lined,ruled]{algorithm2e}
+\usepackage{listing,minted}
+\setminted{
+    frame=lines,
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    linenos
+}
+\title{无约束最优化方法的基本结构：编程实践}
+\author{龚梓阳}
+\date{\zhtoday}
+
+\begin{document}
+
+\maketitle
+
+对于无约束最优化问题
+\begin{equation}
+    \min_{\mathbf{x}\in\mathbb{R}^{n}}f\left(\mathbf{x}\right)
+\end{equation}
+一种常用的解决该问题的迭代算法如下：
+\begin{quotation}
+    选定初始点 $\mathbf{x}_{0}\in\mathbb{R}^{n}$，在 $\mathbf{x}_{0}$ 处，确定一个使函数值下降的方向 $\mathbf{d}$ 与步长 $\alpha$，继而求得下一个迭代点，以此类推，产生一个迭代点列 $\left\{\mathbf{x}_{k}\right\}$，$\left\{\mathbf{x}_{k}\right\}$ 或者其子列应收敛于最优解。当给定的某种终止准则满足时，或者 $\mathbf{x}_{k}$ 已满足要求的近似最优解的精度，或者算法已经无力进一步改善迭代点，则迭代结束。
+\end{quotation}
+\begin{remark}
+    对于上述迭代算法，下降方向与步长的选取顺序不同，导致产生不同类型的方法。
+    \begin{itemize}
+        \item 线搜索方法：在 $\mathbf{x}_{k}$ 点求得下降方向 $\mathbf{d}_{k}$，再沿 $\mathbf{d}_{k}$ 确定步长 $\alpha_{k}$；
+        \item 信赖域方法：在 $\mathbf{x}_{k}$ 点，先限定步长的范围，再同时确定下降方法 $\mathbf{d}_{k}$ 和步长 $\alpha_{k}$。
+    \end{itemize}
+\end{remark}
+
+\section{线搜索方法}
+
+无约束最优化算法中线搜索方法的基本结构如下：
+
+\begin{algorithm}[H]
+    \caption{线搜索方法的基本结构（P15）}
+    \KwIn{目标函数 $f\left(\mathbf{x}\right)$，初始点 $\mathbf{x}_{0}\in\mathbb{R}^{n}$ 以及终止准则}
+    \KwOut{最优解 $\mathbf{x}^{*}$ 以及 $f\left(\mathbf{x}^{*}\right)$}
+    \For{$k=0,\ldots,$}{
+        确定下降方向 $\mathbf{d}_{k}$，使得 $\nabla f\left(\mathbf{x}_{k}\right)^{\prime}\mathbf{d}_{k}<0$\;
+        确定步长 $\alpha_{k}$ 使得 $f\left(\mathbf{x}_{k}+\alpha_{k}\mathbf{d}_{k}\right)<f\left(\mathbf{x}_{k}\right)$\;
+        $\mathbf{x}_{k+1}\leftarrow\mathbf{x}_{k}+\alpha_{k}\mathbf{d}_{k}$\;
+        \If{$\mathbf{x}_{k}$ 满足给定的终止准则}{
+            break\;
+        }
+    }
+    $\mathbf{x}^{*}\leftarrow\mathbf{x}_{k}$，$f\left(\mathbf{x}^{*}\right)\leftarrow f\left(\mathbf{x}_{k}\right)$\;
+\end{algorithm}
+
+\begin{remark}
+    \texttt{while} 与 \texttt{for} 有什么区别？
+\end{remark}
+
+\begin{listing}[H]
+    \begin{minted}{python}
+def unconstrained_optimize(f, x0, epsilon=1e-8, max_iter=1000):
+    x = np.empty((max_iter+1, x0.shape[0]))  # 定义 x 初始存储空间
+
+    x[0] = x0
+    for k in range(max_iter):
+        d = search_desc_direction(f, x[k], ...)
+
+        phi = lambda alpha: f(x[k] + alpha * d)
+        alpha = search_step_length(phi, ...)
+
+        x[k+1] = x[k] + alpha * d
+
+        # if np.linalg.norm(g(x[k+1])) <= epsilon:
+        # if f(x[k]) - f(x[k+1]) <= epsilon:
+        if np.linalg.norm(x[k] - x[k+1]) <= epsilon:
+            break
+
+    return x[k+1], f(x[k+1])
+    \end{minted}
+    \caption{线搜索方法的基本结构：Python 实现}
+\end{listing}
+
+\subsection{精确线搜索方法}
+
+% 为了更好地说明算法，我们考虑书中一道习题：
+% \begin{equation}
+%     \phi(\alpha)=1-\alpha\mathrm{exp}\left(-\alpha^{2}\right)
+% \end{equation}
+
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=.7\linewidth]{figures/exercise-2.8.png}
+%     \caption{习题 2.8}
+% \end{figure}
+
+\subsubsection{确定步长搜索区间}
+
+从一点出发，按一定步长，试图确定函数值呈现“高-低-高”的三点，从而得到一个近似的单峰区间。
+
+\begin{algorithm}[H]
+    \caption{进退法求初始搜索区间（P26）}
+    \KwIn{一元函数 $\phi\left(\alpha\right)$，初始点 $\alpha_{0}$，初始步长 $\gamma_{0}$，步长因子 $t$}
+    \KwOut{初始区间 $\left[a, b\right]$}
+    \For{$i=0,\ldots,$}{
+        $\alpha_{i+1}\leftarrow\alpha_{i}+\gamma_{i}$\;
+        \eIf{$\phi\left(\alpha_{i+1}\right)\geq\phi\left(\alpha_{i}\right)$ 或 $\alpha_{i+1}\leq 0$}{
+            \leIf{$i=0$}{$\gamma_{i+1}\leftarrow-\gamma_{i}$，$\alpha\leftarrow\alpha_{i+1}$}{break}
+        }{
+            $\gamma_{i+1}\leftarrow t\gamma_{i}$，$\alpha\leftarrow\alpha_{i}$，$\alpha_{i}\leftarrow\alpha_{i+1}$\;
+        }
+    }
+    $a\leftarrow\min\left\{\alpha,\alpha_{i+1}\right\}$，$b\leftarrow\max\left\{\alpha,\alpha_{i+1}\right\}$\;
+\end{algorithm}
+
+\begin{remark}
+    在该算法中 $\alpha_{i}$，$\alpha_{i+1}$, $\alpha$ 分别起到了什么作用？
+\end{remark}
+
+\begin{listing}[H]
+    \begin{minted}{python}
+def search_unimodal_interval(phi, alpha0, gamma=0.1, t=2, max_iter=100):
+    alphas = np.empty(max_iter + 1)
+
+    alphas[0] = alpha0
+    for i in range(max_iter):
+        alphas[i+1] = alphas[i] + gamma
+        if phi(alphas[i+1]) >= phi(alphas[i]) or alphas[i+1] <= 0:
+            if i == 0:
+                gamma = -gamma
+                alpha = alphas[i+1]
+            else:
+                break
+        else:
+            gamma = t * gamma
+            alpha = alphas[i]
+            alphas[i] = alphas[i+1]
+
+    return min(alpha, alphas[i+1]), max(alpha, alphas[i+1])
+    \end{minted}
+    \caption{进退法求初始搜索区间：Python 实现}
+\end{listing}
+
+\begin{remark}
+    在该代码中，是否有必要存储每一个 $\alpha_{i}$ 么？
+\end{remark}
+
+\subsubsection{缩小步长搜索区间}
+
+\paragraph{0.618 方法}
+
+通过试探点函数值的比较，使包含极值点的搜索区间不断缩小。
+
+\begin{algorithm}[H]
+    \caption{0.618 方法求一元函数 $\phi\left(\alpha\right)$ 的近似极小点（P27）}
+    \KwIn{一元函数 $\phi\left(\alpha\right)$，初始搜索区间 $\left[a_{0},b_{0}\right]$ 满足 $a_{0}>b_{0}>0$，容许误差 $\varepsilon>0$}
+    \KwOut{近似极小点 $\alpha^{*}$}
+    $\tau\leftarrow \frac{\sqrt{5}-1}{2}\approx 0.618$\;
+    \For{$i=0,\ldots,$}{
+    $a_{i}^{l}\leftarrow a_{i}+\left(1-\tau\right)\left(b_{i}-a_{i}\right)$，$a_{i}^{r}\leftarrow a_{i}+\tau\left(b_{i}-a_{i}\right)$\;
+    \eIf{$\phi\left(a_{i}^{l}\right)<\phi\left(a_{i}^{r}\right)$}{
+        $a_{i+1}\leftarrow a_{i}$，$b_{i+1}\leftarrow a_{i}^{r}$\;
+    }{
+        $a_{i+1}\leftarrow a_{i}^{l}$，$b_{i+1}\leftarrow b_{i}$\;
+    }
+    \lIf{$b_{i+1}-a_{i+1}<\varepsilon$}{break}
+    }
+    $a^{*}\leftarrow\frac{b_{i}+a_{i}}{2}$\;
+\end{algorithm}
+
+\begin{listing}[H]
+    \begin{minted}{python}
+def search_step_length_gold(phi, a0, b0, epsilon=1e-8, max_iter=1000):
+    a, b = np.empty(max_iter + 1), np.empty(max_iter + 1)
+
+    a[0], b[0] = a0, b0
+    tau = (np.sqrt(5) - 1) / 2
+    for i in range(max_iter):
+        a_l = a[i] + (1 - tau) * (b[i] - a[i])
+        a_r = a[i] + tau * (b[i] - a[i])
+        if phi(a_l) < phi(a_r):
+            a[i+1], b[i+1] = a[i], a_r
+        else:
+            a[i+1], b[i+1] = a_l, b[i]
+        if b[i+1] - a[i+1] < epsilon:
+            break
+    return (a[i+1] + b[i+1]) / 2
+    \end{minted}
+    \caption{0.618 方法求一元函数 $\phi\left(\alpha\right)$ 的近似极小点：Python 实现}
+\end{listing}
+
+\begin{remark}
+    在该代码中，是否利用了0.618 法简化计算的目的（每次少算一次 $\phi\left(\cdot\right)$）？如果没有，我们应该怎么解决呢？
+\end{remark}
+
+\paragraph{多项式插值法}
+
+通过在搜索区间中不断地使用二次多项式去近似目标函数，并逐步用插值多项式的极小点去逼近线搜索问题的极小点。
+
+设 $\alpha_{1}<\alpha_{2}<\alpha_{3}$，$\phi\left(\alpha_{1}\right)>\phi\left(\alpha_{2}\right)$，$\phi\left(\alpha_{2}\right)<\phi\left(\alpha_{3}\right)$， 拟合如下的二次插值多项式:
+\begin{equation}
+    p(\alpha)=a\alpha^{2}+b\alpha+c
+\end{equation}
+满足插值条件：
+\begin{equation}
+    \left\{\begin{array}{l}
+        p\left(\alpha_{1}\right)=a\alpha_{1}^{2}+b\alpha_{1}+c=\phi\left(\alpha_{1}\right) \\
+        p\left(\alpha_{2}\right)=a\alpha_{2}^{2}+b\alpha_{2}+c=\phi\left(\alpha_{2}\right) \\
+        p\left(\alpha_{3}\right)=a\alpha_{3}^{2}+b\alpha_{3}+c=\phi\left(\alpha_{3}\right)
+    \end{array}\right.
+\end{equation}
+从极值的必要条件知 $p^{\prime}(\alpha_{p})=2a\alpha_{p}+b=0$，求得
+\begin{equation}
+    \alpha_{p}=-\frac{b}{2a}
+\end{equation}
+从而可以算出
+\begin{equation}
+    \alpha_{p}=\frac{1}{2}\left(\alpha_{1}+\alpha_{2}-\frac{c_{1}}{c_{2}}\right)
+\end{equation}
+其中
+\begin{equation}
+    c_{1}=\frac{\phi\left(\alpha_{3}\right)-\phi\left(\alpha_{1}\right)}{\alpha_{3}-\alpha_{1}},\quad c_{2}=\frac{\frac{\phi\left(\alpha_{2}\right)-\phi\left(\alpha_{1}\right)}{\alpha_{2}-\alpha_{1}}-c_{1}}{\alpha_{2}-\alpha_{3}}
+\end{equation}
+
+\begin{algorithm}[H]
+    \caption{多项式插值法（三点二次插值法）求一维函数 $\phi\left(\alpha\right)$ 的近似极小点}
+    \KwIn{一元函数 $\phi\left(\alpha\right)$，初始搜索区间 $\left[a_{0},b_{0}\right]$ 满足 $a_{0}>b_{0}>0$，容许误差 $\varepsilon>0$}
+    \KwOut{近似极小点 $\alpha^{*}$}
+    任取 $c_{0}\in\left[a_{0},b_{0}\right]$\;
+    \For{$i=0,\ldots,$}{
+    $\alpha_{p}\leftarrow\frac{1}{2}\left(a_{i}+b_{i}-\frac{c_{1}}{c_{2}}\right)$，其中 $c_{1}=\frac{\phi\left(c_{i}\right)-\phi\left(a_{i}\right)}{c_{i}-a_{i}},c_{2}=\frac{\frac{\phi\left(b_{i}\right)-\phi\left(a_{i}\right)}{b_{i}-a_{i}}-c_{1}}{b_{i}-c_{i}}$\;
+    \eIf{$\phi\left(c_{i}\right)\leq\phi\left(\alpha_{p}\right)$}{
+        \eIf{$c_{i}\leq\alpha_{p}$}{
+            $a_{i+1}\leftarrow a_{i}$，$c_{i+1}\leftarrow c_{i}$，$b_{i+1}\leftarrow\alpha_{p}$\;
+        }{
+            $a_{i+1}\leftarrow\alpha_{p}$，$c_{i+1}\leftarrow c_{i}$，$b_{i+1}\leftarrow b_{i}$\;
+        }
+    }{
+        \eIf{$c_{i}\leq\alpha_{p}$}{
+            $a_{i+1}\leftarrow c_{i}$，$c_{i+1}\leftarrow\alpha_{p}$，$b_{i+1}\leftarrow b_{i}$\;
+        }{
+            $a_{i+1}\leftarrow a_{i}$，$c_{i+1}\leftarrow\alpha_{p}$，$b_{i+1}\leftarrow c_{i}$\;
+        }
+    }
+    \lIf{$b_{i+1}-a_{i+1}<\varepsilon$}{break}
+    }
+    $\alpha^{*}\leftarrow\alpha_{p}$\;
+\end{algorithm}
+\begin{listing}[H]
+    \begin{minted}{python}
+def search_step_length_poly32(phi, a0, b0, epsilon=1e-8, max_iter=1000):
+    a, b, c = np.empty(max_iter + 1), np.empty(max_iter + 1), np.empty(max_iter + 1)
+
+    a[0], c[0], b[0] = a0, (a0 + b0) / 2, b0
+    for i in range(max_iter):
+        c1 = (phi(c[i]) - phi(a[i])) / (c[i] - a[i])
+        c2 = ((phi(b[i]) - phi(a[i])) / (b[i] - a[i]) - c1) / (b[i] - c[i])
+        alpha_p = 0.5 * (a[i] + b[i] - c1 / c2)
+        if phi(c[i]) <= phi(alpha_p):
+            if c[i] <= alpha_p:
+                a[i+1], c[i+1], b[i+1] = a[i], c[i], alpha_p
+            else:
+                a[i+1], c[i+1], b[i+1] = alpha_p, c[i], b[i]
+        else:
+            if c[i] <= alpha_p:
+                a[i+1], c[i+1], b[i+1] = c[i], alpha_p, b[i]
+            else:
+                a[i+1], c[i+1], b[i+1] = a[i], alpha_p, c[i]
+        if b[i+1] - a[i+1] < epsilon:
+            break
+
+    return alpha_p
+    \end{minted}
+    \caption{多项式插值法（三点二次插值法）求一维函数 $\phi\left(\alpha\right)$ 的近似极小点：Python 实现}
+\end{listing}
+
+\subsubsection{牛顿切线法}
+
+\begin{algorithm}[H]
+    \caption{牛顿切线法}
+    \KwIn{一元函数 $\phi\left(\alpha\right)$ 及其一阶导函数 $\phi^{\prime}\left(\alpha\right)$ 与二阶导函数 $\phi^{\prime\prime}\left(\alpha\right)$，初始点 $\alpha_{0}$，容许误差 $\varepsilon>0$}
+    \KwOut{近似极小点 $\alpha^{*}$}
+    \For{$i=0,\ldots,$}{
+        $\alpha_{i+1}=\alpha_{i}-\frac{\phi^{\prime}\left(\alpha_{i}\right)}{\phi^{\prime\prime}\left(\alpha_{i}\right)}$\;
+        \lIf{$|\alpha_{i+1}-\alpha_{i}|<\varepsilon$}{break}
+    }
+    $\alpha^{*}\leftarrow\alpha_{i+1}$\;
+\end{algorithm}
+
+\begin{listing}[H]
+    \begin{minted}{python}
+def search_step_length_newton(phi, phi_grad, phi_hess, alpha0, epsilon=1e-8, max_iter=1000):
+    alpha = np.empty(max_iter + 1)
+
+    alpha[0] = alpha0
+    for i in range(max_iter):
+        alpha[i+1] = alpha[i] - phi_grad(alpha[i]) / phi_hess(alpha[i])
+        if abs(alpha[i+1] - alpha[i]) < epsilon:
+            break
+    
+    return alpha[i+1]
+    \end{minted}
+    \caption{牛顿切线法：Python 实现}
+\end{listing}
+
+\end{document}
