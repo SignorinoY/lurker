@@ -1,0 +1,502 @@
+\documentclass[cn]{elegantbook}
+\usepackage[linesnumbered,lined,ruled]{algorithm2e}
+\usepackage{listing,minted}
+\setminted{
+    frame=lines,
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    linenos
+}
+\title{}
+\author{龚梓阳}
+\date{\zhtoday}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+
+\mainmatter
+\chapter{引论}
+
+\section{预备知识}
+
+\subsection{范数}
+
+\begin{definition}[范数]
+    设 $X$ 是域 $\mathbb{K}$ （实数域或复数域）上的线性空间，函数 $\|\cdot\|:X\rightarrow\mathbb{R}$ 满足：
+    \begin{enumerate}
+        \item （正定性）$\forall x\in X, \|x\|\geq0$；$\|x\|=0\iff x=0$；
+        \item （齐次性）$\forall x\in X, \alpha\in\mathbb{K}, \|\alpha x\|=|\alpha|\cdot\|x\|$；
+        \item （次可加性）$\forall x,y\in X, \|x+y\|\leq\|x\|+\|y\|$。
+    \end{enumerate}
+    则称 $\|\cdot\|$ 是 $X$ 上的一个范数。
+\end{definition}
+
+\begin{example}[常见范数]
+    常见范数有：
+    \begin{enumerate}
+        \item 空间 $\mathbb{R}$：$\forall x\in\mathbb{X}$
+              \begin{equation}
+                  \|x\|:=|x|
+              \end{equation}
+              即范数 $\|x\|$ 为 $x$ 的绝对值。
+        \item 空间 $\mathbb{R}^{n}$：$\forall\mathbf{x}\in\mathbb{R}^{n}, \mathbf{x}=(x_{1},x_{2},\ldots,x_{n})^{\prime}$
+              \begin{enumerate}
+                  \item 欧几里得范数：
+                        \begin{equation}
+                            \|\mathbf{x}\|_{2}:=\sqrt{x_{1}^{2}+\cdots+x_{n}^{2}}
+                        \end{equation}
+                  \item  $l_{p}$ 范数 $(p\geq 1)$：
+                        \begin{equation}
+                            \|\mathbf{x}\|_{p}:=\left(\sum_{i=1}^{n}\left|x_{i}\right|^{p}\right)^{1/p}
+                        \end{equation}
+                        若 $p=1$，则
+                        \begin{equation}
+                            \|\mathbf{x}\|_{1}:=\sum_{i=1}^{n}|x_{i}|
+                        \end{equation}
+                        若 $p=\infty$，则
+                        \begin{equation}
+                            \|\mathbf{x}\|_{\infty}:=\max_{i=1,\ldots,n}|x_{i}|
+                        \end{equation}
+                  \item  $l_{0}$ 范数：
+                        \begin{equation}
+                            \|\mathbf{x}\|_{0}=|\{x_{i}:x_{i}\neq 0,i=1,\ldots,n\}|
+                        \end{equation}
+                        即向量 $\mathbf{x}$ 中分量 $x_{i}$ 不为零的个数。
+              \end{enumerate}
+    \end{enumerate}
+\end{example}
+
+\subsection{梯度向量与 Hessien 矩阵}
+
+\begin{definition}[梯度向量]
+    对于多变量函数 $f:\mathbb{R}^{n}\rightarrow\mathbb{R}$，即$f(\mathbf{x})=f\left(x_{1},x_{2},\cdots,x_{n}\right)$，如果 $f$ 在点 $\mathbf{x}_{0}$ 关于每一个变量 $x_{i}$ 都有偏导数 $\frac{\partial f}{\partial x_{i}}(\mathbf{x}_{0})$ 存在，则在点 $\mathbf{x}$ 上，这些偏导数定义了一个向量:
+    \begin{equation}
+        \nabla f(\mathbf{x}_{0})=\left(\frac{\partial f}{\partial x_{1}}(\mathbf{x}_{0}),\ldots,\frac{\partial f}{\partial x_{n}}(\mathbf{x}_{0})\right)^{\prime}
+    \end{equation}
+    该向量称为 $f$ 在点 $\mathbf{x}_{0}$ 的梯度向量。
+\end{definition}
+
+\begin{definition}[Hessian 矩阵]
+    对于多变量函数 $f:\mathbb{R}^{n}\rightarrow\mathbb{R}$, 如果 $f$ 在点 $\mathbf{x}_{0}$ 的所有二阶偏导数都存在，那么函数 $f$ 在点 $\mathbf{x}_{0}$ 的 Hessian 矩阵为
+    \begin{equation}
+        \boldsymbol{H}(\mathbf{x}_{0})=\left[\begin{array}{cccc}
+                \frac{\partial^{2} f}{\partial x_{1}^{2}}(\mathbf{x}_{0})            & \frac{\partial^{2} f}{\partial x_{1} \partial x_{2}}(\mathbf{x}_{0}) & \cdots & \frac{\partial^{2} f}{\partial x_{1} \partial x_{n}}(\mathbf{x}_{0}) \\
+                \frac{\partial^{2} f}{\partial x_{2} \partial x_{1}}(\mathbf{x}_{0}) & \frac{\partial^{2} f}{\partial x_{2}^{2}}(\mathbf{x}_{0})            & \cdots & \frac{\partial^{2} f}{\partial x_{2} \partial x_{n}}(\mathbf{x}_{0}) \\
+                                                                                     &                                                                      &        &                                                                      \\
+                \vdots                                                               & \vdots                                                               & \ddots & \vdots                                                               \\
+                \frac{\partial^{2} f}{\partial x_{n} \partial x_{1}}(\mathbf{x}_{0}) & \frac{\partial^{2} f}{\partial x_{n} \partial x_{2}}(\mathbf{x}_{0}) & \cdots & \frac{\partial^{2} f}{\partial x_{n}^{2}}(\mathbf{x}_{0})
+            \end{array}\right]
+    \end{equation}
+    或使用下标记号表示为
+    \begin{equation}
+        \boldsymbol{H}_{i j}(\mathbf{x}_{0})=\frac{\partial^{2} f}{\partial x_{i} \partial x_{j}}(\mathbf{x}_{0})
+    \end{equation}
+\end{definition}
+
+\subsection{凸集与凸函数}
+
+\begin{definition}[凸集]
+    设集合 $C\subset\mathbb{R}^{n}$。若对 $\forall\mathbf{x},\mathbf{y}\in C$，有
+    \begin{equation}
+        \theta \mathbf{x}+(1-\theta)\mathbf{y}\in C,\quad\theta\in[0,1]
+    \end{equation}
+    则称 $C$ 为凸集。
+\end{definition}
+
+\begin{definition}[凸函数]
+    设集合 $C\subset\mathbb{R}^{n}$ 为非空凸集, 函数 $f:C\rightarrow\mathbb{R}$。若对 $\forall\mathbf{x},\mathbf{y}\in C$，有
+    \begin{equation}
+        f(\theta\mathbf{x}+(1-\theta)\mathbf{y})\leq\theta f(\mathbf{x})+(1-\theta)f(\mathbf{y}),\quad\theta\in[0,1]
+    \end{equation}
+    则称 $f$ 为 $C$ 上的凸函数。若上述不等式对 $\mathbf{x}\neq\mathbf{y}$ 严格成立，则称 $f$ 为 $C$ 上的严格凸函数。
+\end{definition}
+
+\begin{theorem}[凸函数的一阶判定条件]
+    设集合 $C\subset\mathbb{R}^{n}$ 为非空开凸集，函数 $f:C\rightarrow\mathbb{R}$ 可微，则
+    \begin{enumerate}
+        \item $f(x)$ 是凸函数当且仅当对 $\forall\mathbf{x},\mathbf{y}\in C$, 有
+              \begin{equation}
+                  f(\mathbf{y})\geq f(\mathbf{x})+\nabla f(\mathbf{x})^{\prime}(\mathbf{y}-\mathbf{x})
+              \end{equation}
+        \item $f(\mathbf{x})$ 是严格凸函数当且仅当对 $\forall\mathbf{x},\mathbf{y}\in C,\mathbf{x}\neq\mathbf{y}$, 有
+              \begin{equation}
+                  f(\mathbf{y})>f(\mathbf{x})+\nabla f(\mathbf{x})^{\prime}(\mathbf{y}-\mathbf{x})
+              \end{equation}
+    \end{enumerate}
+\end{theorem}
+
+\begin{theorem}[凸函数的二阶判定条件]
+    设集合 $C\subset\mathbb{R}^{n}$ 为非空开凸集，函数 $f:C\rightarrow\mathbb{R}$ 二阶连续可微，则
+    \begin{enumerate}
+        \item $f(x)$ 是凸函数当且仅当对 $\forall\mathbf{x}\in C$，Hessien 矩阵 $\boldsymbol{H}(\mathbf{x})$ 半正定；
+        \item 若对 $\forall\mathbf{x}\in C$，Hessien 矩阵 $\boldsymbol{H}(\mathbf{x})$ 正定，则 $f$ 是严格凸函数。
+    \end{enumerate}
+\end{theorem}
+
+\subsection{常用矩阵求导公式}
+
+\begin{equation}
+    \frac{\partial\boldsymbol{\beta}^{\prime}\mathbf{x}}{\partial\mathbf{x}}=\boldsymbol{\beta}
+\end{equation}
+
+\begin{equation}
+    \frac{\partial\mathbf{x}^{\prime}\mathbf{x}}{\partial\mathbf{x}}=2\mathbf{x}
+\end{equation}
+
+\begin{equation}
+    \frac{\partial\mathbf{x}^{\prime}\mathbf{A}\mathbf{x}}{\partial\mathbf{x}}=\left(\mathbf{A}+\mathbf{A}^{\prime}\right)\mathbf{x}
+\end{equation}
+
+\chapter{无约束最优化方法的基本结构}
+
+\section{最优性条件}
+
+\section{方法的特性}
+
+对于无约束最优化问题
+\begin{equation}
+    \min_{\mathbf{x}\in\mathbb{R}^{n}}f\left(\mathbf{x}\right)
+\end{equation}
+一种常用的解决该问题的迭代算法如下：
+\begin{quotation}
+    选定初始点 $\mathbf{x}_{0}\in\mathbb{R}^{n}$，在 $\mathbf{x}_{0}$ 处，确定一个使函数值下降的方向 $\mathbf{d}$ 与步长 $\alpha$，继而求得下一个迭代点，以此类推，产生一个迭代点列 $\left\{\mathbf{x}_{k}\right\}$，$\left\{\mathbf{x}_{k}\right\}$ 或者其子列应收敛于最优解。当给定的某种终止准则满足时，或者 $\mathbf{x}_{k}$ 已满足要求的近似最优解的精度，或者算法已经无力进一步改善迭代点，则迭代结束。
+\end{quotation}
+\begin{remark}
+    对于上述迭代算法，下降方向与步长的选取顺序不同，导致产生不同类型的方法。
+    \begin{itemize}
+        \item 线搜索方法：在 $\mathbf{x}_{k}$ 点求得下降方向 $\mathbf{d}_{k}$，再沿 $\mathbf{d}_{k}$ 确定步长 $\alpha_{k}$；
+        \item 信赖域方法：在 $\mathbf{x}_{k}$ 点，先限定步长的范围，再同时确定下降方法 $\mathbf{d}_{k}$ 和步长 $\alpha_{k}$。
+    \end{itemize}
+\end{remark}
+
+\section{线搜索准则}
+
+\begin{example}
+    考虑对正定二次函数 $f(\mathbf{x})=\frac{1}{2}\mathbf{x}^{\prime}\mathbf{G}\mathbf{x}+\mathbf{b}^{\prime} \mathbf{x}$，在点 $\mathbf{x}_{k}$，求出沿下降方向 $\mathbf{d}_{k}$ 作精确线搜索的步长 $\alpha_{k}$。
+\end{example}
+
+\begin{proof}
+    若要给出沿下降方向 $\mathbf{d}_{k}$ 作精确线搜索的步长 $\alpha_{k}$，则应对于 $\mathbf{x}_{k+1}=\mathbf{x}_{k}+\alpha_{k}\mathbf{d}_{k}$，满足
+    \begin{equation}
+        \mathbf{d}_{k}^{\prime}\nabla f(\mathbf{x}_{k+1})=0
+    \end{equation}
+
+    由于 $f(\mathbf{x})$ 为正定二次函数，则 $\mathbf{G}$ 为对称正定矩阵，则有 $\mathbf{G}^{\prime}=\mathbf{G}$，因此
+    \begin{equation}
+        \nabla f(\mathbf{x})=\mathbf{G}\mathbf{x}+\mathbf{b}
+    \end{equation}
+    即
+    \begin{equation}
+        \mathbf{d}_{k}^{\prime}\nabla f(\mathbf{x}_{k+1})=\mathbf{d}_{k}^{\prime}\left[\mathbf{G}\left(\mathbf{x}_{k}+\alpha_{k}\mathbf{d}_{k}\right)+\mathbf{b}\right]=0
+    \end{equation}
+
+    由于 $\mathbf{G}$ 为正定矩阵，有 $\mathbf{d}_{k}^{\prime}\mathbf{G}\mathbf{d}_{k}>0$，因此，上式可化简为
+    \begin{equation}
+        \alpha_{k}=-\frac{\mathbf{d}_{k}^{\prime}\left(\mathbf{G}\mathbf{x}_{k}+\mathbf{b}\right)}{\mathbf{d}_{k}^{\prime}\mathbf{G}\mathbf{d}_{k}}=-\frac{\mathbf{d}_{k}^{\prime}\nabla f(\mathbf{x}_{k})}{\mathbf{d}_{k}^{\prime}\mathbf{G}\mathbf{d}_{k}}
+    \end{equation}
+\end{proof}
+
+\section{线搜索求步长}
+
+无约束最优化算法中线搜索方法的基本结构如下：
+
+\begin{algorithm}
+    \caption{线搜索方法的基本结构（P15）}
+    \KwIn{目标函数 $f\left(\mathbf{x}\right)$，初始点 $\mathbf{x}_{0}\in\mathbb{R}^{n}$ 以及终止准则}
+    \KwOut{最优解 $\mathbf{x}^{*}$ 以及 $f\left(\mathbf{x}^{*}\right)$}
+    \For{$k=0,\ldots,$}{
+        确定下降方向 $\mathbf{d}_{k}$，使得 $\nabla f\left(\mathbf{x}_{k}\right)^{\prime}\mathbf{d}_{k}<0$\;
+        确定步长 $\alpha_{k}$ 使得 $f\left(\mathbf{x}_{k}+\alpha_{k}\mathbf{d}_{k}\right)<f\left(\mathbf{x}_{k}\right)$\;
+        $\mathbf{x}_{k+1}\leftarrow\mathbf{x}_{k}+\alpha_{k}\mathbf{d}_{k}$\;
+        \If{$\mathbf{x}_{k}$ 满足给定的终止准则}{
+            break\;
+        }
+    }
+    $\mathbf{x}^{*}\leftarrow\mathbf{x}_{k}$，$f\left(\mathbf{x}^{*}\right)\leftarrow f\left(\mathbf{x}_{k}\right)$\;
+\end{algorithm}
+
+\begin{listing}
+    \begin{minted}{python}
+def unconstrained_optimize(f, x0, epsilon=1e-8, max_iter=1000):
+    x = np.empty((max_iter+1, x0.shape[0]))  # 定义 x 初始存储空间
+
+    x[0] = x0
+    for k in range(max_iter):
+        d = search_desc_direction(f, x[k], ...)
+
+        phi = lambda alpha: f(x[k] + alpha * d)
+        alpha = search_step_length(phi, ...)
+
+        x[k+1] = x[k] + alpha * d
+
+        # if np.linalg.norm(g(x[k+1])) <= epsilon:
+        # if f(x[k]) - f(x[k+1]) <= epsilon:
+        if np.linalg.norm(x[k] - x[k+1]) <= epsilon:
+            break
+
+    return x[k+1], f(x[k+1])
+    \end{minted}
+    \caption{线搜索方法的基本结构：Python 实现}
+\end{listing}
+
+\subsection{精确线搜索方法}
+
+\subsubsection{确定步长搜索区间}
+
+从一点出发，按一定步长，试图确定函数值呈现“高-低-高”的三点，从而得到一个近似的单峰区间。
+
+\begin{algorithm}
+    \caption{进退法求初始搜索区间（P26）}
+    \KwIn{一元函数 $\phi\left(\alpha\right)$，初始点 $\alpha_{0}$，初始步长 $\gamma_{0}$，步长因子 $t$}
+    \KwOut{初始区间 $\left[a, b\right]$}
+    \For{$i=0,\ldots,$}{
+        $\alpha_{i+1}\leftarrow\alpha_{i}+\gamma_{i}$\;
+        \eIf{$\phi\left(\alpha_{i+1}\right)\geq\phi\left(\alpha_{i}\right)$ 或 $\alpha_{i+1}\leq 0$}{
+            \leIf{$i=0$}{$\gamma_{i+1}\leftarrow-\gamma_{i}$，$\alpha\leftarrow\alpha_{i+1}$}{break}
+        }{
+            $\gamma_{i+1}\leftarrow t\gamma_{i}$，$\alpha\leftarrow\alpha_{i}$，$\alpha_{i}\leftarrow\alpha_{i+1}$\;
+        }
+    }
+    $a\leftarrow\min\left\{\alpha,\alpha_{i+1}\right\}$，$b\leftarrow\max\left\{\alpha,\alpha_{i+1}\right\}$\;
+\end{algorithm}
+
+\begin{remark}
+    在该算法中 $\alpha_{i}$，$\alpha_{i+1}$, $\alpha$ 分别起到了什么作用？
+\end{remark}
+
+\begin{listing}
+    \begin{minted}{python}
+def search_unimodal_interval(phi, alpha0, gamma=0.1, t=2, max_iter=100):
+    alphas = np.empty(max_iter + 1)
+
+    alphas[0] = alpha0
+    for i in range(max_iter):
+        alphas[i+1] = alphas[i] + gamma
+        if phi(alphas[i+1]) >= phi(alphas[i]) or alphas[i+1] <= 0:
+            if i == 0:
+                gamma = -gamma
+                alpha = alphas[i+1]
+            else:
+                break
+        else:
+            gamma = t * gamma
+            alpha = alphas[i]
+            alphas[i] = alphas[i+1]
+
+    return min(alpha, alphas[i+1]), max(alpha, alphas[i+1])
+    \end{minted}
+    \caption{进退法求初始搜索区间：Python 实现}
+\end{listing}
+
+\subsubsection{缩小步长搜索区间}
+
+\paragraph{0.618 方法}
+
+通过试探点函数值的比较，使包含极值点的搜索区间不断缩小。
+
+\begin{algorithm}
+    \caption{0.618 方法求一元函数 $\phi\left(\alpha\right)$ 的近似极小点（P27）}
+    \KwIn{一元函数 $\phi\left(\alpha\right)$，初始搜索区间 $\left[a_{0},b_{0}\right]$ 满足 $a_{0}>b_{0}>0$，容许误差 $\varepsilon>0$}
+    \KwOut{近似极小点 $\alpha^{*}$}
+    $\tau\leftarrow \frac{\sqrt{5}-1}{2}\approx 0.618$\;
+    \For{$i=0,\ldots,$}{
+    $a_{i}^{l}\leftarrow a_{i}+\left(1-\tau\right)\left(b_{i}-a_{i}\right)$，$a_{i}^{r}\leftarrow a_{i}+\tau\left(b_{i}-a_{i}\right)$\;
+    \eIf{$\phi\left(a_{i}^{l}\right)<\phi\left(a_{i}^{r}\right)$}{
+        $a_{i+1}\leftarrow a_{i}$，$b_{i+1}\leftarrow a_{i}^{r}$\;
+    }{
+        $a_{i+1}\leftarrow a_{i}^{l}$，$b_{i+1}\leftarrow b_{i}$\;
+    }
+    \lIf{$b_{i+1}-a_{i+1}<\varepsilon$}{break}
+    }
+    $a^{*}\leftarrow\frac{b_{i}+a_{i}}{2}$\;
+\end{algorithm}
+
+\begin{listing}
+    \begin{minted}{python}
+def search_step_length_gold(phi, a0, b0, epsilon=1e-8, max_iter=1000):
+    a, b = np.empty(max_iter + 1), np.empty(max_iter + 1)
+
+    a[0], b[0] = a0, b0
+    tau = (np.sqrt(5) - 1) / 2
+    for i in range(max_iter):
+        a_l = a[i] + (1 - tau) * (b[i] - a[i])
+        a_r = a[i] + tau * (b[i] - a[i])
+        if phi(a_l) < phi(a_r):
+            a[i+1], b[i+1] = a[i], a_r
+        else:
+            a[i+1], b[i+1] = a_l, b[i]
+        if b[i+1] - a[i+1] < epsilon:
+            break
+    return (a[i+1] + b[i+1]) / 2
+    \end{minted}
+    \caption{0.618 方法求一元函数 $\phi\left(\alpha\right)$ 的近似极小点：Python 实现}
+\end{listing}
+
+\paragraph{多项式插值法}
+
+通过在搜索区间中不断地使用二次多项式去近似目标函数，并逐步用插值多项式的极小点去逼近线搜索问题的极小点。
+
+设 $\alpha_{1}<\alpha_{2}<\alpha_{3}$，$\phi\left(\alpha_{1}\right)>\phi\left(\alpha_{2}\right)$，$\phi\left(\alpha_{2}\right)<\phi\left(\alpha_{3}\right)$， 拟合如下的二次插值多项式:
+\begin{equation}
+    p(\alpha)=a\alpha^{2}+b\alpha+c
+\end{equation}
+满足插值条件：
+\begin{equation}
+    \left\{\begin{array}{l}
+        p\left(\alpha_{1}\right)=a\alpha_{1}^{2}+b\alpha_{1}+c=\phi\left(\alpha_{1}\right) \\
+        p\left(\alpha_{2}\right)=a\alpha_{2}^{2}+b\alpha_{2}+c=\phi\left(\alpha_{2}\right) \\
+        p\left(\alpha_{3}\right)=a\alpha_{3}^{2}+b\alpha_{3}+c=\phi\left(\alpha_{3}\right)
+    \end{array}\right.
+\end{equation}
+从极值的必要条件知 $p^{\prime}(\alpha_{p})=2a\alpha_{p}+b=0$，求得
+\begin{equation}
+    \alpha_{p}=-\frac{b}{2a}
+\end{equation}
+从而可以算出
+\begin{equation}
+    \alpha_{p}=\frac{1}{2}\left(\alpha_{1}+\alpha_{2}-\frac{c_{1}}{c_{2}}\right)
+\end{equation}
+其中
+\begin{equation}
+    c_{1}=\frac{\phi\left(\alpha_{3}\right)-\phi\left(\alpha_{1}\right)}{\alpha_{3}-\alpha_{1}},\quad c_{2}=\frac{\frac{\phi\left(\alpha_{2}\right)-\phi\left(\alpha_{1}\right)}{\alpha_{2}-\alpha_{1}}-c_{1}}{\alpha_{2}-\alpha_{3}}
+\end{equation}
+
+\begin{algorithm}
+    \caption{多项式插值法（三点二次插值法）求一维函数 $\phi\left(\alpha\right)$ 的近似极小点}
+    \KwIn{一元函数 $\phi\left(\alpha\right)$，初始搜索区间 $\left[a_{0},b_{0}\right]$ 满足 $a_{0}>b_{0}>0$，容许误差 $\varepsilon>0$}
+    \KwOut{近似极小点 $\alpha^{*}$}
+    任取 $c_{0}\in\left[a_{0},b_{0}\right]$\;
+    \For{$i=0,\ldots,$}{
+    $\alpha_{p}\leftarrow\frac{1}{2}\left(a_{i}+b_{i}-\frac{c_{1}}{c_{2}}\right)$，其中 $c_{1}=\frac{\phi\left(c_{i}\right)-\phi\left(a_{i}\right)}{c_{i}-a_{i}},c_{2}=\frac{\frac{\phi\left(b_{i}\right)-\phi\left(a_{i}\right)}{b_{i}-a_{i}}-c_{1}}{b_{i}-c_{i}}$\;
+    \eIf{$\phi\left(c_{i}\right)\leq\phi\left(\alpha_{p}\right)$}{
+        \eIf{$c_{i}\leq\alpha_{p}$}{
+            $a_{i+1}\leftarrow a_{i}$，$c_{i+1}\leftarrow c_{i}$，$b_{i+1}\leftarrow\alpha_{p}$\;
+        }{
+            $a_{i+1}\leftarrow\alpha_{p}$，$c_{i+1}\leftarrow c_{i}$，$b_{i+1}\leftarrow b_{i}$\;
+        }
+    }{
+        \eIf{$c_{i}\leq\alpha_{p}$}{
+            $a_{i+1}\leftarrow c_{i}$，$c_{i+1}\leftarrow\alpha_{p}$，$b_{i+1}\leftarrow b_{i}$\;
+        }{
+            $a_{i+1}\leftarrow a_{i}$，$c_{i+1}\leftarrow\alpha_{p}$，$b_{i+1}\leftarrow c_{i}$\;
+        }
+    }
+    \lIf{$b_{i+1}-a_{i+1}<\varepsilon$}{break}
+    }
+    $\alpha^{*}\leftarrow\alpha_{p}$\;
+\end{algorithm}
+\begin{listing}
+    \begin{minted}{python}
+def search_step_length_poly32(phi, a0, b0, epsilon=1e-8, max_iter=1000):
+    a, b, c = np.empty(max_iter + 1), np.empty(max_iter + 1), np.empty(max_iter + 1)
+
+    a[0], c[0], b[0] = a0, (a0 + b0) / 2, b0
+    for i in range(max_iter):
+        c1 = (phi(c[i]) - phi(a[i])) / (c[i] - a[i])
+        c2 = ((phi(b[i]) - phi(a[i])) / (b[i] - a[i]) - c1) / (b[i] - c[i])
+        alpha_p = 0.5 * (a[i] + b[i] - c1 / c2)
+        if phi(c[i]) <= phi(alpha_p):
+            if c[i] <= alpha_p:
+                a[i+1], c[i+1], b[i+1] = a[i], c[i], alpha_p
+            else:
+                a[i+1], c[i+1], b[i+1] = alpha_p, c[i], b[i]
+        else:
+            if c[i] <= alpha_p:
+                a[i+1], c[i+1], b[i+1] = c[i], alpha_p, b[i]
+            else:
+                a[i+1], c[i+1], b[i+1] = a[i], alpha_p, c[i]
+        if b[i+1] - a[i+1] < epsilon:
+            break
+
+    return alpha_p
+    \end{minted}
+    \caption{多项式插值法（三点二次插值法）求一维函数 $\phi\left(\alpha\right)$ 的近似极小点：Python 实现}
+\end{listing}
+
+\subsubsection{牛顿切线法}
+
+\begin{algorithm}
+    \caption{牛顿切线法}
+    \KwIn{一元函数 $\phi\left(\alpha\right)$ 及其一阶导函数 $\phi^{\prime}\left(\alpha\right)$ 与二阶导函数 $\phi^{\prime\prime}\left(\alpha\right)$，初始点 $\alpha_{0}$，容许误差 $\varepsilon>0$}
+    \KwOut{近似极小点 $\alpha^{*}$}
+    \For{$i=0,\ldots,$}{
+        $\alpha_{i+1}=\alpha_{i}-\frac{\phi^{\prime}\left(\alpha_{i}\right)}{\phi^{\prime\prime}\left(\alpha_{i}\right)}$\;
+        \lIf{$|\alpha_{i+1}-\alpha_{i}|<\varepsilon$}{break}
+    }
+    $\alpha^{*}\leftarrow\alpha_{i+1}$\;
+\end{algorithm}
+
+\begin{listing}
+    \begin{minted}{python}
+def search_step_length_newton(phi, phi_grad, phi_hess, alpha0, epsilon=1e-8, max_iter=1000):
+    alpha = np.empty(max_iter + 1)
+
+    alpha[0] = alpha0
+    for i in range(max_iter):
+        alpha[i+1] = alpha[i] - phi_grad(alpha[i]) / phi_hess(alpha[i])
+        if abs(alpha[i+1] - alpha[i]) < epsilon:
+            break
+    
+    return alpha[i+1]
+    \end{minted}
+    \caption{牛顿切线法：Python 实现}
+\end{listing}
+
+\chapter{负梯度方法与 Newton 型方法}
+
+\section{最速下降法}
+
+\begin{example}
+    用最速下降方法求解
+    \begin{equation}
+        \min\,f(\mathbf{x})=\frac{1}{2}\mathbf{x}^{\prime}\mathbf{G}\mathbf{x}+\mathbf{b}^{\prime}\mathbf{x}+c,\quad\mathbf{G}\ge
+    \end{equation}
+\end{example}
+
+\begin{proof}
+    对 $f(\mathbf{x})$ 求导可得，
+    \begin{equation}
+        g(\mathbf{x})=\mathbf{G}\mathbf{x}+\mathbf{b}
+    \end{equation}
+    因此，最速下降方向为
+    \begin{equation}
+        \mathbf{d}_{k}=-g(\mathbf{x}_{k})=-\left(\mathbf{G}\mathbf{x}_{k}+\mathbf{b}\right)
+    \end{equation}
+
+    通过一维精确线搜索求得步长 $\alpha_{k}$，即
+    \begin{equation}
+        \alpha_{k}=\arg\min_{\alpha}\,\phi(\alpha)
+    \end{equation}
+    其中，
+    \begin{equation}
+        \phi(\alpha)=f(\mathbf{x}_{k}+\alpha\mathbf{d}_{k})=\frac{1}{2}\left(\mathbf{x}_{k}+\alpha\mathbf{d}_{k}\right)^{\prime}\mathbf{G}\left(\mathbf{x}_{k}+\alpha\mathbf{d}_{k}\right)+\mathbf{b}^{\prime}\left(\mathbf{x}_{k}+\alpha\mathbf{d}_{k}\right)+c
+    \end{equation}
+    对 $\phi(\alpha_{k})$ 求导可得，
+    \begin{equation}
+        \begin{aligned}
+            \phi^{\prime}(\alpha)= & \left[\mathbf{G}\left(\mathbf{x}_{k}+\alpha\mathbf{d}_{k}\right)\right]^{\prime}\mathbf{d}_{k}+\mathbf{b}^{\prime}\mathbf{d}_{k} \\
+            =                      & \left[\mathbf{G}\left(\mathbf{x}_{k}+\alpha\mathbf{d}_{k}\right)+\mathbf{b}\right]^{\prime}\mathbf{d}_{k}                        \\
+            =                      & \left[\left(\mathbf{G}\mathbf{x}_{k}+\mathbf{b}\right)+\alpha\mathbf{G}\mathbf{d}_{k}\right]^{\prime}\mathbf{d}_{k}              \\
+            =                      & -\mathbf{d}_{k}^{\prime}\mathbf{d}_{k}+\alpha\mathbf{d}_{k}^{\prime}\mathbf{G}\mathbf{d}_{k}
+        \end{aligned}
+    \end{equation}
+    令 $\phi^{\prime}(\alpha)=0$，可解得
+    \begin{equation}
+        \alpha_{k}=\frac{\mathbf{d}_{k}^{\prime}\mathbf{d}_{k}}{\mathbf{d}_{k}^{\prime}\mathbf{G}\mathbf{d}_{k}}
+    \end{equation}
+
+    因此，迭代公式为
+    \begin{equation}
+        \mathbf{x}_{k+1}=\mathbf{x}_{k}+\alpha_{k}\mathbf{d}_{k}=\mathbf{x}_{k}+\frac{\mathbf{d}_{k}^{\prime}\mathbf{d}_{k}}{\mathbf{d}_{k}^{\prime}\mathbf{G}\mathbf{d}_{k}}\mathbf{d}_{k}=\mathbf{x}_{k}-\frac{\mathbf{g}_{k}^{\prime}\mathbf{g}_{k}}{\mathbf{g}_{k}^{\prime}\mathbf{G}\mathbf{g}_{k}}\mathbf{g}_{k}
+    \end{equation}
+    其中，
+    \begin{equation}
+        \mathbf{g}_{k}=g(\mathbf{x_{k}})=\mathbf{G}\mathbf{x}_{k}+\mathbf{b}
+    \end{equation}
+\end{proof}
+
+\end{document}
