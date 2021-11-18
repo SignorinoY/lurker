@@ -1,0 +1,81 @@
+% !TEX program = xelatex
+
+\documentclass[cn,a4paper,12pt,founder,mtpro2]{elegantpaper}
+\title{负梯度方法与 Newton 型方法：上机作业}
+\author{龚梓阳}
+\date{\zhtoday}
+
+\begin{document}
+
+\maketitle
+
+\begin{quotation}
+    本次作业两道题目任选其一即可，可使用任意编程语言（如，Python，MATLAB，R等）。请各位同学于 \textbf{12月3日前} 提交以下内容：
+    \begin{itemize}
+        \item 纸质版报告：包括对优化问题的推导、题目所要求的讨论结果（以表格或图片形式展示并辅以一段文字说明）以及算法实现中遇到的问题与解决方案等。
+        \item 代码：将\textbf{带有注释说明的源代码}打包并命名为“\textbf{学号-姓名-上机作业1}”后发送至助教邮箱：\href{mailto:meetziyang@outlook.com}{meetziyang@outlook.com}。
+    \end{itemize}
+\end{quotation}
+
+\begin{enumerate}
+    \item 负梯度方法与 Newton 型方法的数值比较。编写下列程序（至少需实现 \textbf{5 种方法}，且必须包含\textbf{加粗}方法）：
+          \begin{itemize}
+              \item 负梯度方法：\textbf{最速下降方法}、最小梯度方法和 BB 方法（BB1\&BB2）。
+              \item Newton 方法：\textbf{基本牛顿方法}、阻尼 Newton 方法、混合方法和 LM 方法。
+              \item 拟 Newton 方法：SR1 方法、DFP 方法和\textbf{BFGS 方法}。
+          \end{itemize}
+
+          考虑最优化问题
+          \begin{equation}
+              \min_{\mathbf{x}}\,f(\mathbf{x})=\sum_{i=1}^{n/2}\left[100\left(x_{2i-1}^{2}-x_{2i}\right)^{2}+\left(x_{2i-1}-1\right)^{2}\right]
+          \end{equation}
+          选择不同的问题规模（$n=2,10,50$），对不同方法的有效性进行讨论。其中，
+          \begin{itemize}
+              \item 迭代的终止准则为 $f_{k-1}-f_{k}\leq 10^{-8}$，迭代次数上限为 1000。
+              \item 讨论内容可以包括收敛结果，算法的迭代次数、函数调用次数、导数调用次数及 CPU 时间等。
+          \end{itemize}
+
+    \item 由人工神经网络方法解微分方程导出的最优化问题\footnote{第 2 题可使用现成软件包，如 Python（SciPy）、MATLAB（Optimization Toolbox）等。}。考虑以下常微分方程问题
+          \begin{equation}
+              \frac{\mathrm{d}y(x)}{\mathrm{d}x}=x-y+1,\quad y(0)=1
+          \end{equation}
+          其精确解为 $y(x)=x+\mathrm{e}^{-x}$。使用 1-n-1 前馈神经网络 $N(x;\mathbf{p})$ 在 $x\in[0,1]$ 范围内，求解其实验解，即
+          \begin{equation}
+              y_{t}(x;\mathbf{p})=y_0+xN(x;\mathbf{p}),\quad x\in[0,1]
+          \end{equation}
+          该问题最终可转换为如下优化问题
+          \begin{equation}
+              \min_{\mathbf{p}}\sum_{i=1}^{m}\left\{-x_{i}+\left[\sum_{j=1}^{n}\left(1+x_{i}\right)\frac{v_{j}}{1+\mathrm{e}^{\theta_{j}-w_{j}x_{i}}}+x_{i}\frac{v_{j}w_{j}\mathrm{e}^{\theta_{j}-w_{j}x_{i}}}{\left(1+\mathrm{e}^{\theta_{j}-w_{j}x_{i}}\right)^{2}}\right]\right\}^{2}
+          \end{equation}
+          其中，$\mathbf{p}=\left(\mathbf{w},\mathbf{v},\boldsymbol{\theta}\right)^{\prime}$ 为该 1-n-1 前馈神经网络的参数，$x_{1},x_{2},\ldots,x_{m}\in[0,1]$，为方便起见，令 $x_{i}$ 取 $[0,1]$ 上均匀分布的点。使用任意方法求解该优化问题，并讨论在不同网络节点数 （$n=2,3,4$）和训练元素个数（$m=3,5,10$）的情况下，实验解 $y_{t}(x;\mathbf{p})$ 与精确解 $y(x)$ 的差异。
+          \begin{note}
+              考虑一阶常微分方程
+              \begin{equation}
+                  \frac{\mathrm{d}y(x)}{\mathrm{d}x}=f(x,y),\quad x\in[0,1]
+                  \label{eq:1ode}
+              \end{equation}
+
+              假设其实验解 $y_{t}(x)$ 具有如下形式
+              \begin{equation}
+                  y_{t}(x;\mathbf{p})=y_0+xN(x;\mathbf{p})
+              \end{equation}
+
+              $N(x;\mathbf{p})$ 为 1-n-1 前馈神经网络，具有如下形式：
+              \begin{equation}
+                  N(x;\mathbf{p})=\sum_{j=1}^{n}v_{j}\varphi(z_{j}),\quad z_{j}=w_{j}x-\theta_{j}
+              \end{equation}
+              其中，$\mathbf{p}=\left(\mathbf{w},\mathbf{v},\boldsymbol{\theta}\right)^{\prime}$，$w_{j}$ 是从输入节点 $x$ 到隐藏层第 $j$ 个节点的权重，$v_{j}$ 是隐藏层第 $j$ 个节点到输出节点的权重，$\theta_{j}$ 是隐藏层第 $j$ 个节点的阈值，$\varphi(z)=\frac{1}{1+\mathrm{e}^{-z}}$ 为 Sigmoid 型激活函数。
+
+              我们希望对于实验解 $y_{t}(x)$，它能够尽可能地满足一阶常微分方程(\ref{eq:1ode})，即
+              \begin{equation}
+                  \left[\frac{\mathrm{d}y_{t}(x;\mathbf{p})}{\mathrm{d}x}-f\left(x,y_{t}(x;\mathbf{p})\right)\right]^{2}\rightarrow 0,\quad x\in[0,1]
+              \end{equation}
+              
+              因此，将 $x$ 在区间 $[0,1]$ 离散化，取 $0=x_{1},x_{2},\ldots,x_{m}=1$，得到如下优化目标函数：
+              \begin{equation}
+                  \min_{\mathbf{p}}\,\sum_{i=1}^{m}\left[\left.\frac{\mathrm{d}y_{t}(x;\mathbf{p})}{\mathrm{d}x}\right|_{x=x_{i}}-f\left(x_{i},y_{t}(x_{i};\mathbf{p})\right)\right]^{2}
+              \end{equation}
+          \end{note}
+\end{enumerate}
+
+\end{document}
