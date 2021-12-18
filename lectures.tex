@@ -559,4 +559,126 @@ def search_step_length_newton(phi, phi_grad, phi_hess, alpha0, epsilon=1e-8, max
     \end{enumerate}
 \end{solution}
 
+\begin{exercise}
+
+\end{exercise}
+
+\begin{solution}
+    对于线性变换 $\mathbf{y}=\mathbf{W}\mathbf{x}+\boldsymbol{\mu}$（其中 $\mathbf{W}$ 非奇异），有
+    \begin{equation}
+        \mathbf{x}=\mathbf{W}^{-1}\left(\mathbf{y}-\boldsymbol{\mu}\right)
+    \end{equation}
+    令
+    \begin{equation}
+        f_{\mathbf{y}}(\mathbf{y})=f_{\mathbf{x}}\left(\mathbf{W}^{-1}\left(\mathbf{y}-\boldsymbol{\mu}\right)\right)=f_{\mathbf{x}}(\mathbf{x})
+    \end{equation}
+    则有，
+    \begin{equation}
+        \min_{\mathbf{x}}\,f_{\mathbf{x}}(\mathbf{x})\Longleftrightarrow\min_{\mathbf{y}}\,f_{\mathbf{y}}(\mathbf{y})
+    \end{equation}
+    根据链式法则，$f_{\mathbf{y}}(\mathbf{y})$ 的导函数 $g_{\mathbf{y}}(\mathbf{y})$ 有
+    \begin{equation}
+        \begin{aligned}
+            g_{\mathbf{y}}(\mathbf{y})= & \nabla f_{\mathbf{y}}(\mathbf{y})=\frac{\partial f_{\mathbf{x}}\left(\mathbf{W}^{-1}\left(\mathbf{y}-\boldsymbol{\mu}\right)\right)}{\partial\left(\mathbf{W}^{-1}\left(\mathbf{y}-\boldsymbol{\mu}\right)\right)}\cdot\frac{\partial\left(\mathbf{W}^{-1}\left(\mathbf{y}-\boldsymbol{\mu}\right)\right)}{\partial\mathbf{y}} \\
+            =                           & \mathbf{W}^{-\mathrm{T}}g_{\mathbf{x}}(\mathbf{W}^{-1}\left(\mathbf{y}-\boldsymbol{\mu}\right))=\mathbf{W}^{-\mathrm{T}}g_{\mathbf{x}}(\mathbf{x})
+        \end{aligned}
+    \end{equation}
+    类似可得，$f_{\mathbf{y}}(\mathbf{y})$ 的 Hessian 矩阵 $G_{\mathbf{y}}(\mathbf{y})$ 有
+    \begin{equation}
+        G_{\mathbf{y}}(\mathbf{y})=\mathbf{W}^{-\mathrm{T}}G_{\mathbf{x}}(\mathbf{x})\mathbf{W}^{-1}
+    \end{equation}
+
+    现给定 $\mathbf{y}_{k}=\mathbf{W}\mathbf{x}_{k}+\boldsymbol{\mu}$，试证明 $\mathbf{y}_{k+1}=\mathbf{W}\mathbf{x}_{k+1}+\boldsymbol{\mu}$。
+
+    % 假设 $\alpha_{k}$ 不变，即 $f(\mathbf{x})$ 由线搜索法则在 $\mathbf{x}_{k}$ 点确定的步长以及 $g(\mathbf{y})$ 由线搜索法则在 $\mathbf{y}_{k}$ 点确定的步长相同。
+
+    \begin{enumerate}
+        \item 负梯度方法：关于 $\min_{\mathbf{x}}\,f_{\mathbf{x}}(\mathbf{x})$ 的迭代公式为
+              \begin{equation}
+                  \mathbf{x}_{k+1}=\mathbf{x}_{k}-\alpha_{k}g_{\mathbf{x}}(\mathbf{x}_{k})
+              \end{equation}
+              则相对应的关于 $\min_{\mathbf{y}}\,f_{\mathbf{y}}(\mathbf{y})$ 的迭代公式为
+              \begin{equation}
+                  \mathbf{y}_{k+1}=\mathbf{y}_{k}-\beta_{k}g_{\mathbf{y}}(\mathbf{y}_{k})
+              \end{equation}
+              对于迭代公式，由于下降方向不同，所以
+              \begin{equation}
+                  \begin{aligned}
+                      \mathbf{y}_{k+1}= & \mathbf{y}_{k}-\beta_{k}g_{\mathbf{y}}(\mathbf{y}_{k})=\mathbf{W}\mathbf{x}_{k}+\boldsymbol{\mu}-\beta_{k}\mathbf{W}^{-\mathrm{T}}g_{\mathbf{x}}(\mathbf{x}_{k})                     \\
+                      =                 & \mathbf{W}\left[\mathbf{x}_{k}-\beta_{k}\mathbf{W}^{-1}\mathbf{W}^{-\mathrm{T}}g_{\mathbf{x}}(\mathbf{x}_{k})\right]+\boldsymbol{\mu}\neq\mathbf{W}\mathbf{x}_{k+1}+\boldsymbol{\mu}
+                  \end{aligned}
+              \end{equation}
+              即，负梯度方法在该线性变换下\textbf{不是}不变的。
+        \item 带固定步长的 Newton 方法：关于 $\min_{\mathbf{x}}\,f_{\mathbf{x}}(\mathbf{x})$ 的迭代公式为
+              \begin{equation}
+                  \mathbf{x}_{k+1}=\mathbf{x}_{k}-\left[G_{\mathbf{x}}(\mathbf{x}_{k})\right]^{-1}g_{\mathbf{x}}(\mathbf{x}_{k})
+              \end{equation}
+              则相对应的关于 $\min_{\mathbf{y}}\,f_{\mathbf{y}}(\mathbf{y})$ 的迭代公式为
+              \begin{equation}
+                  \mathbf{y}_{k+1}=\mathbf{y}_{k}-\left[G_{\mathbf{y}}(\mathbf{y}_{k})\right]^{-1}g_{\mathbf{y}}(\mathbf{y}_{k})
+              \end{equation}
+              对于 $f_{\mathbf{y}}(\mathbf{y})$ 的 Hessian 矩阵的逆有，
+              \begin{equation}
+                  \left[G_{\mathbf{y}}(\mathbf{y}_{k})\right]^{-1}=\left[\mathbf{W}^{-\mathrm{T}}G_{\mathbf{x}}(\mathbf{x})\mathbf{W}^{-1}\right]^{-1}=\mathbf{W}\left[G_{\mathbf{x}}(\mathbf{x}_{k})\right]^{-1}\left(\mathbf{W}^{-\mathrm{T}}\right)^{-1} \\
+              \end{equation}
+              因此，
+              \begin{equation}
+                  \begin{aligned}
+                      \mathbf{y}_{k+1}= & \mathbf{y}_{k}-\left[G_{\mathbf{y}}(\mathbf{y}_{k})\right]^{-1}g_{\mathbf{y}}(\mathbf{y}_{k})                                                                                                        \\
+                      =                 & \mathbf{W}\mathbf{x}_{k}-\mathbf{W}\left[G_{\mathbf{x}}(\mathbf{x}_{k})\right]^{-1}\left(\mathbf{W}^{-\mathrm{T}}\right)^{-1}\mathbf{W}^{-\mathrm{T}}g_{\mathbf{x}}(\mathbf{x}_{k})+\boldsymbol{\mu} \\
+                      =                 & \mathbf{W}\left[\mathbf{x}_{k}-\left[G_{\mathbf{x}}(\mathbf{x}_{k})\right]^{-1}g_{\mathbf{x}}(\mathbf{x}_{k})\right]+\boldsymbol{\mu}                                                                \\
+                      =                 & \mathbf{W}\mathbf{x}_{k+1}+\boldsymbol{\mu}
+                  \end{aligned}
+              \end{equation}
+              即，带固定步长的 Newton 方法在该线性变换下\textbf{是}不变的。
+        \item DFP 方法与 BFGS 方法：关于 $\min_{\mathbf{x}}\,f_{\mathbf{x}}(\mathbf{x})$ 的迭代公式为
+              \begin{equation}
+                  \mathbf{x}_{k+1}=\mathbf{x}_{k}-\alpha_{k}H_{\mathbf{x}}(\mathbf{x}_{k})g_{\mathbf{x}}(\mathbf{x}_{k})
+              \end{equation}
+              则相对应的关于 $\min_{\mathbf{y}}\,f_{\mathbf{y}}(\mathbf{y})$ 的迭代公式为
+              \begin{equation}
+                  \mathbf{y}_{k+1}=\mathbf{y}_{k}-\beta_{k}H_{\mathbf{y}}(\mathbf{y}_{k})g_{\mathbf{y}}(\mathbf{y}_{k})
+              \end{equation}
+              对于 DFP 方法与 BFGS 方法，$H_{\mathbf{x}}(\mathbf{x}_{k})$ 需满足
+              \begin{equation}
+                  H_{\mathbf{x}}(\mathbf{x}_{k})\left[g_{\mathbf{x}}(\mathbf{x}_{k})-g_{\mathbf{x}}(\mathbf{x}_{k-1})\right]=\left(\mathbf{x}_{k}-\mathbf{x}_{k-1}\right)
+              \end{equation}
+              同理，$H_{\mathbf{y}}(\mathbf{y}_{k})$ 需满足
+              \begin{equation}
+                  H_{\mathbf{y}}(\mathbf{y}_{k})\left[g_{\mathbf{y}}(\mathbf{y}_{k})-g_{\mathbf{y}}(\mathbf{y}_{k-1})\right]=\left(\mathbf{y}_{k}-\mathbf{y}_{k-1}\right)
+              \end{equation}
+              则，
+              \begin{equation}
+                  \begin{aligned}
+                      H_{\mathbf{y}}(\mathbf{y}_{k})\left[g_{\mathbf{y}}(\mathbf{y}_{k})-g_{\mathbf{y}}(\mathbf{y}_{k-1})\right]=                                         & \left(\mathbf{y}_{k}-\mathbf{y}_{k-1}\right)           \\
+                      H_{\mathbf{y}}(\mathbf{y}_{k})\left\{\mathbf{W}^{\mathrm{-T}}\left[g_{\mathbf{x}}(\mathbf{x}_{k})-g_{\mathbf{x}}(\mathbf{x}_{k-1})\right]\right\} = & \mathbf{W}\left(\mathbf{x}_{k}-\mathbf{x}_{k-1}\right) \\
+                      \mathbf{W}^{-1}H_{\mathbf{y}}(\mathbf{y}_{k})\mathbf{W}^{\mathrm{-T}}\left[g_{\mathbf{x}}(\mathbf{x}_{k})-g_{\mathbf{x}}(\mathbf{x}_{k-1})\right] = & \left(\mathbf{x}_{k}-\mathbf{x}_{k-1}\right)           \\
+                  \end{aligned}
+              \end{equation}
+              因此，
+              \begin{equation}
+                  H_{\mathbf{x}}(\mathbf{x}_{k})=\mathbf{W}^{-1}H_{\mathbf{y}}(\mathbf{y}_{k})\mathbf{W}^{\mathrm{-T}}\Longleftrightarrow H_{\mathbf{y}}(\mathbf{y}_{k})=\mathbf{W}H_{\mathbf{x}}(\mathbf{x}_{k})\mathbf{W}^{\mathrm{T}}
+              \end{equation}
+              \begin{itemize}
+                  \item 步长：
+                        \begin{equation}
+                            \begin{aligned}
+                                \left[g_{\mathbf{y}}(\mathbf{y}_{k})\right]^{\mathrm{T}}\left[-H_{\mathbf{y}}(\mathbf{y}_{k})g_{\mathbf{y}}(\mathbf{y}_{k})\right]= & \left[\mathbf{W}^{\mathrm{-T}}g_{\mathbf{x}}(\mathbf{x}_{k})\right]^{\mathrm{T}}\left[-\mathbf{W}H_{\mathbf{x}}(\mathbf{x}_{k})\mathbf{W}^{\mathrm{T}}\mathbf{W}^{\mathrm{-T}}g_{\mathbf{x}}(\mathbf{x}_{k})\right] \\
+                                =                                                                                                                                   & \left[g_{\mathbf{x}}(\mathbf{x}_{k})\right]^{\mathrm{T}}\left[-H_{\mathbf{x}}(\mathbf{x}_{k})g_{\mathbf{x}}(\mathbf{x}_{k})\right]
+                            \end{aligned}
+                        \end{equation}
+                        所以由仅含 $f_{k}$ 与 $\mathbf{g}_{k}^{\mathrm{T}}\mathbf{d}_{k}$ 的线搜索确定的步长是不变的，即 $\alpha_{k}=\beta_{k}$。
+                  \item 迭代公式：
+                        \begin{equation}
+                            \begin{aligned}
+                                \mathbf{y}_{k+1}= & \mathbf{y}_{k}-\beta_{k}H_{\mathbf{y}}(\mathbf{y}_{k})g_{\mathbf{y}}(\mathbf{y}_{k})                                                                                      \\
+                                =                 & \mathbf{W}\mathbf{x}_{k}-\alpha_{k}\mathbf{W}H_{\mathbf{x}}(\mathbf{x}_{k})\mathbf{W}^{\mathrm{T}}\mathbf{W}^{-\mathrm{T}}g_{\mathbf{x}}(\mathbf{x}_{k})+\boldsymbol{\mu} \\
+                                =                 & \mathbf{W}\left[\mathbf{x}_{k}-\alpha_{k}H_{\mathbf{x}}(\mathbf{x}_{k})g_{\mathbf{x}}(\mathbf{x}_{k})\right]+\boldsymbol{\mu}                                             \\
+                                =                 & \mathbf{W}\mathbf{x}_{k+1}+\boldsymbol{\mu}
+                            \end{aligned}
+                        \end{equation}
+              \end{itemize}
+              即，DFP 方法与 BFGS 方法在该线性变换下\textbf{是}不变的。
+    \end{enumerate}
+\end{solution}
 \end{document}
