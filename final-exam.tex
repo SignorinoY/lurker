@@ -1,0 +1,94 @@
+\documentclass[cn,12pt,mtpro2]{elegantpaper}
+\usepackage{pgfplots}
+\title{优化方法\,期末论文题目}
+\author{}
+\date{\zhtoday}
+
+\begin{document}
+\maketitle
+
+\noindent 本次作业请于 \textbf{2022年1月9日前} 提交，需包含以下内容：
+\begin{itemize}
+    \item 纸质版论文：需包括摘要、引言、文献综述、正文、结论以及参考文献等部分。
+    \item 补充材料：包括电子版论文（\texttt{.pdf} 格式）及相关补充材料（补充数据及\textbf{带有注释说明}的源代码等）。请将补充材料打包并命名为 “\textbf{期末论文-题目1/题目2-学号1-姓名1-学号2-姓名2-……}” 后发送至助教邮箱：\href{mailto:meetziyang@outlook.com}{meetziyang@outlook.com}。
+\end{itemize}
+
+\noindent 可以以小组形式进行（最多 5 人）；两道题目任选其一即可；可使用任意编程语言，如无特殊要求，可使用现成软件包。
+
+
+\section{拟合广义可加模型}
+
+广义可加模型具有如下形式：
+\begin{equation}
+    f(\mathbf{x})=\alpha+\sum_{j=1}^{p}f_{j}(x_{j})
+\end{equation}
+其中，$\mathbf{x}\in\mathbb{R}^{p}$ 是自变量；$\alpha\in\mathbb{R}$ 是截距项，$f_{j}:\mathbb{R}\rightarrow\mathbb{R}$ 是未定义的（非参）光滑函数且 $f_{j}(0)=0$。
+
+为简化问题，我们限制 $f_{j}(\cdot),j=1,\ldots,p$ 为分段线性函数，并给定结点 $-\infty<p_{1}<\ldots<p_{K}<\infty$，也就是说函数 $f_{j}(\cdot)$ 在区间 $(-\infty,p_{1}],[p_{1},p_{2}],\ldots,[p_{K},\infty)$ 上为线性函数并且在结点处连续（如图 \ref{figure:piecewise-affine-function} 所示）。对于该广义可加模型 $f(\mathbf{x})$，定义 $C$ 为所有分段线性函数 $f_{j}(\cdot)$ 在所有结点附近斜率的变化程度。该指标 $C$ 度量所有分段线性函数 $f_{j}(\cdot)$ 的非线性程度，当 $C=0$ 时，该广义可加模型退化为线性回归模型。
+
+\begin{figure}[htp]
+    \centering
+    \begin{tikzpicture}[
+            declare function={
+                    func(\x)= (\x<=4) * (10+5*\x)   +
+                    and (\x>=4, \x<7) * (30-2*(\x-4))     +
+                    and (\x>=7,  \x<=10) * (24-10*(\x-7)) ;
+                }
+        ]    \begin{axis}[ticks=none,
+                axis x line=middle, axis y line=middle,
+                ymin=0, ymax=35, ytick={}, ylabel=$f_{j}(\cdot)$,
+                xmin=0, xmax=10, xtick={}, xlabel=$\mu$,
+            ]
+            \addplot[blue, samples at ={0,1,2,3,3.99,4.01,6.99,7.01,10}]{func(x)};
+            \filldraw (axis cs: 4,0) circle (1pt) node [above,font=\tiny] {$p_{1}$};
+            \filldraw (axis cs: 7,0) circle (1pt) node [above,font=\tiny] {$p_{2}$};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{分段线性函数 $f_{j}(\cdot)$ 示意图}
+    \label{figure:piecewise-affine-function}
+\end{figure}
+现给定一组数据 $(\mathbf{x}^{(1)},y^{(1)}),\ldots,(\mathbf{x}^{(n)},y^{(n)})\in\mathbb{R}^{p}\times\mathbb{R}$，我们希望该广义可加模型能够尽可能地拟合给定数据，即
+\begin{equation}
+    \min_{\alpha,f_{j}}\quad\left[y^{(i)}-\alpha-\sum_{j=1}^{p}f_{j}(\mathbf{x}^{(i)}_{j})\right]^{2}+\lambda C
+\end{equation}
+其中，$\lambda>0$ 为正则化参数。
+
+\begin{enumerate}
+    \item 考虑如何表达该分段线性函数 $f_{j}(\cdot)$ 并定义 $f_{j}(\cdot)$ 的非线性程度，从而可以使用本学期内学过的优化方法求解该问题。
+    \item 基于第（1）问中提出的方法，选择正则化参数 $\lambda$ 对 \texttt{problem1.py} 中生成的数据进行拟合。该文件包括一个 $n\times p$ 矩阵 $\mathbf{X}$（矩阵中每一行是 $(\mathbf{x}^{i})^{\mathrm{T}}$），一个列向量 $\mathbf{y}$ （向量中每一行是 $y^{(i)}$）以及一个向量 $\mathbf{p}$ 为给定的结点。给出求解得出的均方误差，并对比估计得到的函数 $\hat{f}_{j}(\cdot)$ 与真实的函数 $f_{j}(\cdot)$。（真实函数以及绘图程序在文件中已给出）
+    \item 基于实现的方法（需自己确定分段线性函数结点 $\mathbf{p}$ 及正则化参数 $\lambda$），选择任意一真实数据\footnote{参考 \url{https://archive.ics.uci.edu/ml/index.php}。}进行拟合。
+    \item 查阅相关资料，考虑其他类型的光滑函数（如样条函数等），重新求解第（1）---（3）问，并与给定的分段线性函数进行对比和讨论。
+\end{enumerate}
+
+\begin{note}
+    分段线性函数 $f_{j}(\cdot)$ 可以表示为一系列基函数的线性组合
+    \begin{equation}
+        f_{j}(\mu)=\sum_{k=0}^{K}\beta_{jk}b_{k}(\mu)
+    \end{equation}
+    其中，
+    \begin{equation}
+        b_{0}(\mu)=\mu,\quad b_{k}(\mu)=(\mu-p_{k})_{+}-(-p_{k})_{+},\,k=1,\ldots,K
+    \end{equation}
+\end{note}
+
+\section{投资组合优化问题}
+
+现有上证 50 的 50 支股票在过去一年内的价格记录，利用该数据可计算出第 $i$ 只股票的历史平均收益 $\mu_{i}$ 和上证 50 的相关系数矩阵 $\mathbf{C}$。我们可以依靠这些信息构建一个投资组合，我们用 $x_{i}$ 代表第 $i$ 支股票在投资组合中所占的比例，令 $\mathbf{x}=
+    \left(x_{1},\ldots,x_{50}\right)^{\mathrm{T}}$，其中 $\sum_{i=1}^{50}x_{i}=1$。我们可以的计算得到投资组合的平均收益和方差分别为
+\begin{equation}
+    \mathbf{\mu}_{x}=\mathbf{\mu}^{\mathrm{T}}\mathbf{x},\quad\mathbf{V}_{\mathbf{x}}=\mathbf{x}^{\mathrm{T}}\mathbf{C}\mathbf{x}
+\end{equation}
+则我们可以构建一个最大化收益，同时最小化方差的投资组合：
+\begin{equation}
+    \begin{aligned}
+        \min_{\mathbf{x}}\quad & q(\mathbf{x})=-\mathbf{\mu}^{\mathrm{T}}\mathbf{x}+\lambda\mathbf{x}^{\mathrm{T}}\mathbf{C}\mathbf{x} \\
+        \textrm{s.t.}\quad     & \sum_{i=1}^{50}x_i=1                                                                                  \\
+                               & x_{i}\geq 0,\quad i=1,\ldots,50
+    \end{aligned}
+\end{equation}
+\begin{enumerate}
+    \item 写出优化问题的拉格朗日乘子形式与 KKT 条件，并解释 KKT 条件的含义。
+    \item 使用已有的优化算法包，编写代码求解上述问题，并比较不同 $\lambda$ 下的最优解 $q^{*}$ 的变化。
+    \item 尝试自己编写优化算法求解问题，并验证结果。
+\end{enumerate}
+\end{document}
